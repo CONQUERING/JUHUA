@@ -4,6 +4,7 @@ import tornado.web
 import os
 import hashlib
 import json
+import time
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 client = MongoClient()
@@ -16,6 +17,8 @@ class RegisterHandler(tornado.web.RequestHandler):
 
 class ApiRegisterHandler(tornado.web.RequestHandler):
     def post(self):
+        s_id = self.get_secure_cookie( name = "session_id" )
+        print(s_id)
         email = self.get_body_argument(name = "email")
         password = self.get_body_argument(name = "password")
         # password = h.update(password.encode())
@@ -40,7 +43,7 @@ class ApiRegisterHandler(tornado.web.RequestHandler):
                     "user_id"   : "{}".format(post_id),
                     "email"     : email,
                 }
-
+                self.set_secure_cookie( name= "session_id" , value = "lalala" )
                 self.write( json.dumps(response) )
             except Exception as e:
                 print(e)
@@ -73,7 +76,8 @@ application = tornado.web.Application([
         (r"/api/login",ApiLoginHandler),
         (r"/js/(.*)",tornado.web.StaticFileHandler, {"path": os.getcwd()+'/js/' }),
         (r"/css/(.*)",tornado.web.StaticFileHandler, {"path": os.getcwd()+'/css/' }),
-        ])
+        ], cookie_secret= str( time.time() )
+        )
 
 if __name__ == "__main__":
     application.listen(8888)
